@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import os
 import re
 import sys
 
 SUFFIX = "-noOp"
 ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
+EXCLUDED_PACKAGES = {
+    name.strip()
+    for name in os.environ.get("LP_NOOP_REWRITE_EXCLUDE", "").split(",")
+    if name.strip()
+}
 
 PKG_KEYS = ("package_name", "root_path")
 
 
 def add_suffix_if_missing(name: str) -> str:
+    if name in EXCLUDED_PACKAGES:
+        return name
     return name if name.endswith(SUFFIX) else name + SUFFIX
 
 

@@ -14,12 +14,32 @@ Checks that the proof package provides a Makefile, removes `opaque` modifiers
 from local `.lp` files, and rewrites package names/imports to the `-noOp`
 variants with `rename2_noOp.py`.
 
+`Stdlib` imports are rewritten to `Stdlib-noOp`, and Leo library imports are
+rewritten to `Leo-III-lambdapi-lib-noOp`. The standard-library repository may
+keep its upstream `Stdlib` root at top level, but it must provide the non-opaque
+`Stdlib-noOp` source under `lambdapi-noOp/` or via `STDLIB_LP_DIR`. This avoids
+loading two distinct copies of the standard library in one proof package.
+
 The `opaque` removal is implemented in Python rather than via `perl -i`, so it
 does not depend on platform-specific in-place editing behavior or locale quirks.
 
 ## `10_export_lp_to_dk.sh`
 
-Runs `make clean`, optionally runs `make install`, and then runs `make dk`.
+Runs `make clean`, optionally runs `make install`, and then exports the proof
+package `.lp` files to `.dk`.
+
+By default this stage calls `lambdapi export` directly with explicit dependency
+bindings:
+
+```text
+--map-dir=Stdlib-noOp:STDLIB_LP_DIR
+--map-dir=Leo-III-lambdapi-lib-noOp:LEO_LP_DIR
+```
+
+This avoids accidentally resolving `Stdlib-noOp` or the Leo package through a
+globally installed package instead of the repository paths passed to the
+pipeline. Set `LP_EXPORT_USE_MAKE=1` to use the proof package's `make dk`
+target instead.
 
 By default `SKIP_PROOF_INSTALL=1`, so the initial install pass is skipped.
 Lambdapi still checks source files during DK export.
@@ -82,9 +102,13 @@ Writes `_CoqProject` for the generated proof package and checks generated Rocq
 files with:
 
 ```bash
-coqc -Q . "" -Q ROCQ_LEO_SLICE "" FILE.v
+coqc -Q . "" -Q LEO_ROCQ_DIR/partial_stdlib "" -Q LEO_ROCQ_DIR/leo_lib "" FILE.v
 ```
 
 The local `-Q . ""` binding is needed so generated files can import local
 modules such as `Signature` and `Formulae` in VSCode/vscoq and at the command
 line.
+
+In the public translator interface, this Rocq directory is derived as
+`LEO_REPO/rocq` and can be overridden with `LEO_ROCQ_DIR`. The stage also still
+accepts the older flat layout where `mappings.vo` is directly in `LEO_ROCQ_DIR`.

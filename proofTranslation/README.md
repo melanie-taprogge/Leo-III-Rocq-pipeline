@@ -9,20 +9,42 @@ repository.
 proofTranslation/translateProof2rocq.sh \
   PROOF_DIR \
   ROCQ_OUT \
-  STDLIB \
-  LEOLIB \
-  ROCQ_LIB
+  STDLIB_REPO \
+  LEO_REPO
 ```
 
-Defaults:
+For the example proof directory, a minimal batch wrapper is available:
+
+```bash
+proofTranslation/translateProofBatch2rocq.sh STDLIB_REPO LEO_REPO
+```
+
+By default it translates `examples/lpFiles/*` to `examples/RocqTranslations/*`
+and prints only per-proof status plus a final summary. Use `VERBOSE=1` to show
+the underlying translator output.
+
+Derived paths:
 
 ```text
-PROOF_DIR  = sampleProofs/lpProof_sur_cantor_orig
-ROCQ_OUT   = rocq_proof_cantor_new
-STDLIB     = lambdapi-stdlib-noOp_R
-LEOLIB     = Leo-III-lambdapi-lib-noOp_R
-ROCQ_LIB   = rocq_leo_slice
+STDLIB_LP_DIR = STDLIB_REPO/lambdapi-noOp, when present
+LEO_LP_DIR    = LEO_REPO
+LEO_ROCQ_DIR  = LEO_REPO/rocq
 ```
+
+Otherwise `STDLIB_LP_DIR` falls back to `STDLIB_REPO`. Override these with
+environment variables if a local checkout uses a different layout.
+
+The translator copies `PROOF_DIR` to `ROCQ_OUT/_work` before preprocessing by
+default. This keeps the original proof package unchanged. Set
+`WORK_DIR=/path/to/work` to choose a different work directory, or
+`LP_TRANSLATION_IN_PLACE=1` if the caller already provides a disposable copy.
+
+`rename2_noOp.py` rewrites package/import roots to their `-noOp` variants by
+default, including `Stdlib -> Stdlib-noOp`. This is required because the
+translated Leo library imports the non-opaque standard-library package.
+
+Set `LP_NOOP_REWRITE_EXCLUDE=PackageName` only for a package that must keep its
+original root path.
 
 ## Stage Layout
 
@@ -58,7 +80,9 @@ Current phase meaning:
 
 - `10_export_lp_to_dk.sh`
   Runs `make clean`, optionally runs `make install`, then exports local LP files
-  to DK. `SKIP_PROOF_INSTALL=1` is the default.
+  to DK with explicit `--map-dir` bindings for the stdlib and Leo dependency
+  repositories. `SKIP_PROOF_INSTALL=1` is the default. Set
+  `LP_EXPORT_USE_MAKE=1` to fall back to the proof package's `make dk` target.
 
 - `20_postprocess_dk_for_rocq.sh`
   Removes tactic-only DK requires and strips generated package/library prefixes
@@ -84,7 +108,9 @@ Current phase meaning:
 
 - `70_check_rocq.sh`
   Writes `_CoqProject` for the generated proof package and checks the generated
-  Rocq files with `coqc -Q . '' -Q ROCQ_LIB ''`.
+  Rocq files with `coqc -Q . ''` plus the compiled library load paths. For the
+  translated Leo repository layout, these are `LEO_ROCQ_DIR/partial_stdlib` and
+  `LEO_ROCQ_DIR/leo_lib`.
 
 ## Notes
 

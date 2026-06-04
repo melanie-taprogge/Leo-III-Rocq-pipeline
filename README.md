@@ -15,9 +15,8 @@ It translates one proof package:
 proofTranslation/translateProof2rocq.sh \
   /path/to/proof-package \
   /path/to/rocq-output \
-  /path/to/lambdapi-stdlib-noOp_R \
-  /path/to/Leo-III-lambdapi-lib-noOp_R \
-  /path/to/rocq_leo_slice
+  /path/to/lambdapi-stdlib-rocq \
+  /path/to/Leo-III-lambdapi-lib-rocq
 ```
 
 The proof package is expected to contain:
@@ -30,6 +29,46 @@ The proof package is expected to contain:
 
 The output directory contains generated `.v` files, `order.txt`, and a
 `_CoqProject` file suitable for VSCode/vscoq and command-line checking.
+
+## Dependency Repositories
+
+This pipeline expects two companion repositories:
+
+- Lambdapi standard-library Rocq translation:
+  `TODO: add standard-library repository URL`
+- Leo-III Lambdapi library Rocq translation:
+  `TODO: add Leo-III library repository URL`
+
+The standard-library repository is used on the Lambdapi/DK side. Its root may
+keep the upstream standard-library package root `Stdlib`. For proof export, the
+pipeline uses the non-opaque source copy under:
+
+```text
+STDLIB_REPO/lambdapi-noOp
+```
+
+That subdirectory must contain `lambdapi.pkg` with `root_path = Stdlib-noOp`.
+If your checkout uses a different location for the non-opaque stdlib source,
+set `STDLIB_LP_DIR`.
+
+The Leo-III library repository is used on both sides:
+
+- its root is used as the Lambdapi/DK dependency for Leo library imports;
+- its `rocq/` subdirectory is used as the compiled Rocq library dependency when
+  checking generated proof files.
+
+The expected Leo Lambdapi package root is `Leo-III-lambdapi-lib-noOp`, matching
+the current translated Leo repository.
+
+If your local checkout uses a different layout, keep the same command-line
+arguments and override the derived paths with:
+
+```bash
+STDLIB_LP_DIR=/path/to/stdlib-lp \
+LEO_LP_DIR=/path/to/leo-lp \
+LEO_ROCQ_DIR=/path/to/leo-rocq \
+proofTranslation/translateProof2rocq.sh PROOF_DIR ROCQ_OUT STDLIB_REPO LEO_REPO
+```
 
 ## Required External Tools
 
@@ -79,8 +118,6 @@ docs/
 ## Current Design Assumption
 
 This repository contains the proof translation pipeline, not translated library
-snapshots and not the scripts for translating those libraries. The proof
-translator takes the non-opaque Lambdapi stdlib, the non-opaque Leo library, and
-the compiled Rocq Leo slice as arguments. In the current workspace that Rocq
-slice is produced by the separate Leo-III Lambdapi library Rocq translation
-repository.
+snapshots and not the scripts for translating those libraries. It relies on the
+two companion repositories above for Lambdapi/DK dependencies and for the
+compiled Rocq library used during proof checking.
