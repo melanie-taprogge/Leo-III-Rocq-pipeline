@@ -35,9 +35,9 @@ The output directory contains generated `.v` files, `order.txt`, and a
 This pipeline expects two companion repositories:
 
 - Lambdapi standard-library Rocq translation:
-  `TODO: add standard-library repository URL`
+  `https://github.com/melanie-taprogge/lambdapi-stdlib/tree/extended_stdlib_encoding`
 - Leo-III Lambdapi library Rocq translation:
-  `TODO: add Leo-III library repository URL`
+  `https://github.com/melanie-taprogge/Leo-III-lambdapi-lib-rocq/tree/mainL`
 
 The standard-library repository is used on the Lambdapi/DK side. Its root may
 keep the upstream standard-library package root `Stdlib`. For proof export, the
