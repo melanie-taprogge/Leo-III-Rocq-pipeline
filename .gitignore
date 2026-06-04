@@ -1,0 +1,17 @@
+*.lpo
+*.dko
+*.dk
+*.vo
+*.vos
+*.vok
+*.glob
+.*.aux
+.lia.cache
+.nia.cache
+.DS_Store
+__pycache__/
+*.pyc
+runs/
+work/
+rocq_out/
+currentTranslated/
