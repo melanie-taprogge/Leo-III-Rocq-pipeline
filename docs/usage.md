@@ -27,9 +27,13 @@ Default environment:
 SKIP_PROOF_INSTALL=1
 SKIP_DK_CHECK=1
 DROP_IMPORTS_REGEX=Prop|Set|Nat|List
+LP_ROCQ_LOCALE=<auto-detected UTF-8 locale>
 ```
 
 `SKIP_PROOF_INSTALL=1` avoids a duplicate package install/check pass before DK
 export. Lambdapi still checks the source files during `make dk`.
 
 Set `SKIP_DK_CHECK=0` to run the optional Dedukti check stage.
+
+The translator detects a usable UTF-8 locale instead of hard-coding a
+platform-specific one. Override it with `LP_ROCQ_LOCALE` if needed.

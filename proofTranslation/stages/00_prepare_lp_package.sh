@@ -15,7 +15,7 @@ if [ ! -f "$PROOF_DIR/Makefile" ]; then
 fi
 
 find "$PROOF_DIR" -type f -name "*.lp" -print0 | while IFS= read -r -d '' file; do
-  perl -0pi -e 's/\bopaque([[:space:]]+symbol\b)/$1/g' "$file"
+  python3 "$SUPPORT_ROOT/helpers/remove_opaque.py" "$file"
   echo "Processed: $file"
 done
 

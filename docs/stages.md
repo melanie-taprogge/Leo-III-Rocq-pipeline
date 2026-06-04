@@ -14,6 +14,9 @@ Checks that the proof package provides a Makefile, removes `opaque` modifiers
 from local `.lp` files, and rewrites package names/imports to the `-noOp`
 variants with `rename2_noOp.py`.
 
+The `opaque` removal is implemented in Python rather than via `perl -i`, so it
+does not depend on platform-specific in-place editing behavior or locale quirks.
+
 ## `10_export_lp_to_dk.sh`
 
 Runs `make clean`, optionally runs `make install`, and then runs `make dk`.

@@ -40,6 +40,11 @@ The scripts expect the following commands to be available:
 - `dk` only when optional DK checking is enabled
 - `python3`
 
+The scripts are written for `bash` and are intended to run on both macOS and
+Linux. The proof translator detects a usable UTF-8 locale at runtime. If the
+host has an unusual locale setup, set `LP_ROCQ_LOCALE` to a valid UTF-8 locale,
+for example `C.UTF-8` on many Linux systems or `en_US.UTF-8` on macOS.
+
 ## Repository Layout
 
 ```text

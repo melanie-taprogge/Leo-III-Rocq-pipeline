@@ -20,19 +20,8 @@ LEOLIB="$(cd "$LEOLIB" && pwd)"
 ROCQ_LIB="$(cd "$ROCQ_LIB" && pwd)"
 
 source "$STAGE_ROOT/helpers/timing.sh"
-
-export LANG="${LANG:-en_US.UTF-8}"
-export LC_ALL="${LC_ALL:-en_US.UTF-8}"
-export LC_CTYPE="${LC_CTYPE:-en_US.UTF-8}"
-if [ "$LANG" = "C.UTF-8" ]; then
-  export LANG="en_US.UTF-8"
-fi
-if [ "$LC_ALL" = "C.UTF-8" ]; then
-  export LC_ALL="en_US.UTF-8"
-fi
-if [ "$LC_CTYPE" = "C.UTF-8" ]; then
-  export LC_CTYPE="en_US.UTF-8"
-fi
+source "$STAGE_ROOT/helpers/locale.sh"
+export_utf8_locale
 
 run_phase() {
   local name="$1"
