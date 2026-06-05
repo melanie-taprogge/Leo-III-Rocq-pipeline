@@ -10,6 +10,31 @@ The pipeline is intentionally staged, a description can be found in [here](./doc
 proofTranslation/translateProof2rocq.sh
 ```
 
+## Quickstart
+
+After cloning this repository and the two companion library repositories, run
+the bundled example translations with:
+
+```bash
+proofTranslation/translateProofBatch2rocq.sh \
+  /path/to/lambdapi-stdlib-rocq \
+  /path/to/Leo-III-lambdapi-lib-rocq
+```
+
+This translates proof packages from:
+
+```text
+examples/lpFiles
+```
+
+to:
+
+```text
+examples/RocqTranslations
+```
+
+Use `VERBOSE=1` to print the full log for each proof.
+
 It translates one proof package:
 
 ```bash

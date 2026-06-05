@@ -1,5 +1,56 @@
 # Usage
 
+## Translate The Bundled Examples
+
+The lightweight batch wrapper translates every proof package in
+`examples/lpFiles` and writes generated Rocq packages to
+`examples/RocqTranslations`:
+
+```bash
+proofTranslation/translateProofBatch2rocq.sh \
+  STDLIB_REPO \
+  LEO_REPO
+```
+
+Arguments:
+
+```text
+STDLIB_REPO Lambdapi standard-library Rocq-translation repository
+LEO_REPO    Leo-III Lambdapi library repository; LEO_REPO/rocq is used by coqc
+```
+
+Example:
+
+```bash
+proofTranslation/translateProofBatch2rocq.sh \
+  /path/to/lambdapi-stdlib-rocq \
+  /path/to/Leo-III-lambdapi-lib-rocq
+```
+
+The script prints one `RUN`, `OK`, `FAIL`, or `SKIP` line per proof and a final
+summary. By default, failed proofs print the last part of their log. Set
+`VERBOSE=1` to print full per-proof logs:
+
+```bash
+VERBOSE=1 proofTranslation/translateProofBatch2rocq.sh \
+  /path/to/lambdapi-stdlib-rocq \
+  /path/to/Leo-III-lambdapi-lib-rocq
+```
+
+To translate a custom batch directory, pass explicit input and output
+directories:
+
+```bash
+proofTranslation/translateProofBatch2rocq.sh \
+  INPUT_ROOT \
+  OUTPUT_ROOT \
+  STDLIB_REPO \
+  LEO_REPO
+```
+
+`INPUT_ROOT` should contain one subdirectory per proof package. Each proof
+package must contain a `lambdapi.pkg`; directories without one are skipped.
+
 ## Translate One Proof Package
 
 ```bash
