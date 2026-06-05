@@ -6,6 +6,8 @@ The main orchestrator is:
 proofTranslation/translateProof2rocq.sh
 ```
 
+Documentation of the various workarounds the pipeline performs is given [here](workarounds.md).
+
 It calls the following stages.
 
 ## `00_prepare_lp_package.sh`
@@ -79,6 +81,8 @@ and rewrite it to the unrelated Rocq comparison carrier. The helper therefore
 renames the local declaration consistently across the proof package, for
 example `comp -> lp_local_comp`, while leaving genuine stdlib references free
 to use the global mapping.
+
+In the future, this step can be avoided by improving Leo-III proof generation.
 
 ## `50_export_dk_to_rocq.sh`
 

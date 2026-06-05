@@ -1,9 +1,10 @@
 # Leo-III to Rocq Translation Pipeline
 
 This repository contains the current staged scripts for translating one Leo-III
-Lambdapi proof package to Rocq through Dedukti.
+Lambdapi proof package to Rocq through Dedukti. 
+It also contains some documentation, and some example Leo-III files and their translations. 
 
-The pipeline is intentionally staged. The main proof translator is:
+The pipeline is intentionally staged, a description can be found in [here](./docs/stages.md). The main proof translator is:
 
 ```bash
 proofTranslation/translateProof2rocq.sh
@@ -18,6 +19,8 @@ proofTranslation/translateProof2rocq.sh \
   /path/to/lambdapi-stdlib-rocq \
   /path/to/Leo-III-lambdapi-lib-rocq
 ```
+
+For details, refer to the [usage.md](./docs/usage.md).
 
 The proof package is expected to contain:
 
