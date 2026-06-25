@@ -85,8 +85,8 @@ Current phase meaning:
   `LP_EXPORT_USE_MAKE=1` to fall back to the proof package's `make dk` target.
 
 - `20_postprocess_dk_for_rocq.sh`
-  Removes tactic-only DK requires and strips generated package/library prefixes
-  from DK module references when the unprefixed target module exists.
+  Removes tactic-only DK requires. Current Lambdapi emits the expected
+  unprefixed DK module names, so no package/library prefix rewrite is needed.
 
 - `30_postprocess_dk_for_dkcheck.sh`
   Placeholder for DK-check-only cleanup. No extra DK-check-only rewrite is
@@ -115,6 +115,9 @@ Current phase meaning:
 ## Notes
 
 The Rocq export stage delegates to `support/helpers/dk_to_rocq.sh`, which
-contains both the Lambdapi `stt_coq` call and the Rocq postprocessing fixes.
+reconstructs Rocq imports, dequalifies mapped DK module references, generates
+temporary renamings for unmapped DK identifiers that Rocq cannot parse directly,
+including invalid components in qualified imported references, calls Lambdapi
+`stt_coq`, and applies the remaining targeted Rocq postprocessing fixes.
 
 The orchestrator emits `PHASE_TIME` lines for per-stage timing.

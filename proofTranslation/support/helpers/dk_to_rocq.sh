@@ -15,7 +15,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 tmpdk="$tmpdir/$(basename "$IN")"
 tmpencoding="$tmpdir/encoding.lp"
 tmpmapping="$tmpdir/mappings.lp"
-restore_names="$tmpdir/restore-names.tsv"
+tmprenaming="$tmpdir/renamings.lp"
 all_imports="$tmpdir/all-imports.v"
 imports="$tmpdir/imports.v"
 body="$tmpdir/body.v"
@@ -56,7 +56,9 @@ for line in src.read_text(encoding="utf-8").splitlines():
     if s.startswith("#REQUIRE "):
         continue
 
-    # Drop rewrite rules. stt_coq ignores rules anyway, and [] rules crash parsing.
+    # Drop rewrite rules. Rocq has no matching import mechanism for DK rewrite
+    # rules, so the translated files rely on mapped definitions and shim lemmas
+    # for computations that were definitional in DK.
     # Examples:
     #   [x0,x1] f x0 --> x1.
     #   [] f --> g.
@@ -123,89 +125,20 @@ for mod in sorted(set(modules), key=len, reverse=True):
 dk_path.write_text(text, encoding="utf-8")
 PY
 
-## Lambdapi's Coq exporter does not match DK quoted identifiers like {|π|}
-## against mapping/encoding config entries. Rewrite quoted identifiers to
-## regular ASCII identifiers in both the temporary DK file and the config files.
-#python3 - "$tmpdk" "$ENCODING" "$tmpencoding" "$MAPPING" "$tmpmapping" <<'PY'
-#import re
-#import sys
-#import unicodedata
-#from pathlib import Path
-#
-#dk_path = Path(sys.argv[1])
-#encoding_in = Path(sys.argv[2])
-#encoding_out = Path(sys.argv[3])
-#mapping_in = Path(sys.argv[4])
-#mapping_out = Path(sys.argv[5])
-#
-#known = {
-#    "#admit": "lp_hash_admit",
-#    "#apply": "lp_hash_apply",
-#    "#assume": "lp_hash_assume",
-#    "#fail": "lp_hash_fail",
-#    "#generalize": "lp_hash_generalize",
-#    "#have": "lp_hash_have",
-#    "#induction": "lp_hash_induction",
-#    "#orelse": "lp_hash_orelse",
-#    "#refine": "lp_hash_refine",
-#    "#reflexivity": "lp_hash_reflexivity",
-#    "#remove": "lp_hash_remove",
-#    "#repeat": "lp_hash_repeat",
-#    "#rewrite": "lp_hash_rewrite",
-#    "#set": "lp_hash_set",
-#    "#simplify": "lp_hash_simplify",
-#    "#simplify_beta": "lp_hash_simplify_beta",
-#    "#solve": "lp_hash_solve",
-#    "#symmetry": "lp_hash_symmetry",
-#    "#try": "lp_hash_try",
-#    "#why3": "lp_hash_why3",
-#}
-#
-#def sanitize(name: str) -> str:
-#    if name in known:
-#        return known[name]
-#
-#    out = []
-#    for ch in unicodedata.normalize("NFC", name):
-#        if ch.isascii() and (ch.isalnum() or ch == "_"):
-#            out.append(ch)
-#        elif ch == "'":
-#            out.append("_prime")
-#        else:
-#            out.append(f"_u{ord(ch):04x}_")
-#
-#    ident = "".join(out)
-#    ident = re.sub(r"_+", "_", ident).strip("_")
-#    if not ident or not (ident[0].isalpha() or ident[0] == "_"):
-#        ident = "lp_" + ident
-#    elif not ident.startswith("lp_"):
-#        ident = "lp_" + ident
-#    return ident
-#
-#def rewrite_quoted(text: str) -> str:
-#    return re.sub(r"\{\|([^|]+)\|\}", lambda m: sanitize(m.group(1)), text)
-#
-#dk_path.write_text(rewrite_quoted(dk_path.read_text(encoding="utf-8")), encoding="utf-8")
-#encoding_out.write_text(rewrite_quoted(encoding_in.read_text(encoding="utf-8")), encoding="utf-8")
-#mapping_out.write_text(rewrite_quoted(mapping_in.read_text(encoding="utf-8")), encoding="utf-8")
-#PY
-
-# Lambdapi's Coq exporter does not match DK quoted identifiers like {|π|}
-# against mapping/encoding config entries. Bare Unicode/operator names are not
-# all accepted by Lambdapi either, so rewrite quoted identifiers to ASCII in
-# the temporary DK/config files and remember readable Rocq-safe names to restore.
-python3 - "$tmpdk" "$ENCODING" "$tmpencoding" "$MAPPING" "$tmpmapping" "$restore_names" <<'PY'
+# Current Lambdapi can match quoted DK identifiers directly in mapping and
+# renaming files. Keep the support files unchanged and provide explicit
+# renamings for unmapped DK identifiers that Rocq cannot parse directly.
+cp "$ENCODING" "$tmpencoding"
+cp "$MAPPING" "$tmpmapping"
+python3 - "$tmpdk" "$tmpmapping" "$tmprenaming" <<'PY'
 import re
 import sys
 import unicodedata
 from pathlib import Path
 
 dk_path = Path(sys.argv[1])
-encoding_in = Path(sys.argv[2])
-encoding_out = Path(sys.argv[3])
-mapping_in = Path(sys.argv[4])
-mapping_out = Path(sys.argv[5])
-restore_path = Path(sys.argv[6])
+mapping_path = Path(sys.argv[2])
+renaming_path = Path(sys.argv[3])
 
 known = {
     "#admit": "lp_hash_admit",
@@ -262,200 +195,112 @@ def is_rocq_plain_ident(name: str) -> bool:
         if ch in "_'" or cat.startswith("L") or cat.startswith("N"):
             continue
         return False
-    return True
+    return name != "_"
 
-restore = {}
+def needs_renaming(name: str, quoted: bool) -> bool:
+    # Since Lambdapi #1397, stt_coq fails fast on identifiers it cannot
+    # guarantee are legal Rocq identifiers. Quoted DK names and non-ASCII names
+    # therefore need explicit renaming unless they are already mapped.
+    return quoted or not is_rocq_plain_ident(name) or not name.isascii()
 
-def rewrite_quoted(text: str) -> str:
-    def repl(m):
-        original = m.group(1)
-        ident = sanitize(original)
-        if original != ident and is_rocq_plain_ident(original):
-            restore[ident] = original
-        return ident
-    return re.sub(r"\{\|([^|]+)\|\}", repl, text)
+def target_name(name: str) -> str:
+    if is_rocq_plain_ident(name) and name.isascii():
+        return name
+    return sanitize(name)
 
-dk_path.write_text(rewrite_quoted(dk_path.read_text(encoding="utf-8")), encoding="utf-8")
-encoding_out.write_text(rewrite_quoted(encoding_in.read_text(encoding="utf-8")), encoding="utf-8")
-mapping_out.write_text(rewrite_quoted(mapping_in.read_text(encoding="utf-8")), encoding="utf-8")
-restore_path.write_text(
-    "".join(f"{k}\t{v}\n" for k, v in sorted(restore.items(), key=lambda kv: len(kv[0]), reverse=True)),
+def unquote(name: str) -> str:
+    if name.startswith("{|") and name.endswith("|}"):
+        return name[2:-2]
+    return name
+
+mapped_sources = set()
+for line in mapping_path.read_text(encoding="utf-8").splitlines():
+    m = re.search(r"≔\s*([^;]+?)\s*;", line)
+    if not m:
+        continue
+    src = m.group(1).strip()
+    mapped_sources.add(src)
+
+renamings = {}
+used_targets = set()
+
+def add_renaming(source: str) -> None:
+    if source in renamings:
+        return
+    quoted = source.startswith("{|") and source.endswith("|}")
+    raw = unquote(source)
+    if source in mapped_sources:
+        return
+    if not needs_renaming(raw, quoted):
+        return
+
+    base = target_name(raw)
+    candidate = base
+    i = 2
+    while candidate in used_targets:
+        candidate = f"{base}_{i}"
+        i += 1
+    used_targets.add(candidate)
+    renamings[source] = candidate
+
+text = dk_path.read_text(encoding="utf-8")
+
+# Quoted identifiers can occur as imported constants or constructors, not just
+# as declarations. If they are not covered by mappings.lp, give stt_coq an
+# explicit Rocq spelling.
+for m in re.finditer(r"\{\|[^|]+\|\}", text):
+    add_renaming(m.group(0))
+
+# Also catch unquoted declaration names that are legal DK identifiers but not
+# legal Rocq identifiers, e.g. TPTP premise names starting with digits.
+decl_re = re.compile(r"(?m)^\s*(?:def\s+|injective\s+)?([^\s:]+)\s*:")
+for m in decl_re.finditer(text):
+    add_renaming(m.group(1))
+
+# Catch invalid components in qualified imported references as well.
+# Example: Formulae.1_p0 should use the same generated renaming as a local
+# declaration 1_p0, so stt_coq can print Formulae.lp_1_p0.
+qualified_re = re.compile(r"\b[A-Za-z_][A-Za-z0-9_']*\.([^\s()\[\]{}:;,]+)")
+for m in qualified_re.finditer(text):
+    add_renaming(m.group(1).rstrip("."))
+
+renaming_path.write_text(
+    "".join(f'builtin "{target}" ≔ {source};\n' for source, target in sorted(renamings.items())),
     encoding="utf-8",
 )
 PY
-
-## Remove Dedukti/Lambdapi quoted identifier braces from the temporary DK file.
-## Example:
-##   {|ι|}       -> ι
-##   {|ind_𝔹|}   -> ind_𝔹
-##   {|∨ᵢ₁|}    -> ∨ᵢ₁
-#python3 - "$tmpdk" <<'PY'
-#import re
-#import sys
-#from pathlib import Path
-#
-#path = Path(sys.argv[1])
-#text = path.read_text(encoding="utf-8")
-#
-#text = re.sub(r"\{\|([^|]+)\|\}", r"\1", text)
-#
-#path.write_text(text, encoding="utf-8")
-#PY
 
 # debugging: show stripped file:
 #echo "dk file without imports, module references and rules:"
 #cat "$tmpdk"
 
 # Export stripped and de-qualified DK file to Rocq.
-lambdapi export -o stt_coq \
-  --encoding "$tmpencoding" \
-  --use-notations \
-  --mapping "$tmpmapping" \
-  "$tmpdk" > "$body"
+if [ -s "$tmprenaming" ]; then
+  lambdapi export -o stt_coq \
+    --encoding "$tmpencoding" \
+    --use-notations \
+    --mapping "$tmpmapping" \
+    --renaming "$tmprenaming" \
+    "$tmpdk" > "$body"
+else
+  lambdapi export -o stt_coq \
+    --encoding "$tmpencoding" \
+    --use-notations \
+    --mapping "$tmpmapping" \
+    "$tmpdk" > "$body"
+fi
 
-# Rocq cannot parse Dedukti/Lambdapi quoted identifiers. The mapped symbols
-# should already have been rewritten by Lambdapi; any remaining quoted names
-# are local library symbols, so give them stable ASCII Rocq identifiers.
-#python3 - "$body" <<'PY'
-#import re
-#import sys
-#import unicodedata
-#from pathlib import Path
-#
-#path = Path(sys.argv[1])
-#text = path.read_text(encoding="utf-8")
-#
-#known = {
-#    "#admit": "lp_hash_admit",
-#    "#apply": "lp_hash_apply",
-#    "#assume": "lp_hash_assume",
-#    "#fail": "lp_hash_fail",
-#    "#generalize": "lp_hash_generalize",
-#    "#have": "lp_hash_have",
-#    "#induction": "lp_hash_induction",
-#    "#orelse": "lp_hash_orelse",
-#    "#refine": "lp_hash_refine",
-#    "#reflexivity": "lp_hash_reflexivity",
-#    "#remove": "lp_hash_remove",
-#    "#repeat": "lp_hash_repeat",
-#    "#rewrite": "lp_hash_rewrite",
-#    "#set": "lp_hash_set",
-#    "#simplify": "lp_hash_simplify",
-#    "#simplify_beta": "lp_hash_simplify_beta",
-#    "#solve": "lp_hash_solve",
-#    "#symmetry": "lp_hash_symmetry",
-#    "#try": "lp_hash_try",
-#    "#why3": "lp_hash_why3",
-#}
-#
-#def sanitize(name: str) -> str:
-#    if name in known:
-#        return known[name]
-#
-#    out = []
-#    for ch in unicodedata.normalize("NFC", name):
-#        if ch.isascii() and (ch.isalnum() or ch == "_"):
-#            out.append(ch)
-#        elif ch == "'":
-#            out.append("_prime")
-#        else:
-#            out.append(f"_u{ord(ch):04x}_")
-#
-#    ident = "".join(out)
-#    ident = re.sub(r"_+", "_", ident).strip("_")
-#    if not ident or not (ident[0].isalpha() or ident[0] == "_"):
-#        ident = "lp_" + ident
-#    elif not ident.startswith("lp_"):
-#        ident = "lp_" + ident
-#    return ident
-#
-#text = re.sub(r"\{\|([^|]+)\|\}", lambda m: sanitize(m.group(1)), text)
-#path.write_text(text, encoding="utf-8")
-#PY
-
-# Restore Rocq-parseable Unicode names that were only hidden from Lambdapi's
-# parser. Operator-like names stay ASCII because Rocq rejects them as idents.
-python3 - "$body" "$restore_names" "$OUT" <<'PY'
+# Apply targeted Rocq-side cleanups.
+python3 - "$body" "$OUT" <<'PY'
 import re
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-restore_path = Path(sys.argv[2])
-out_path = Path(sys.argv[3])
+out_path = Path(sys.argv[2])
 text = path.read_text(encoding="utf-8")
 
-text = re.sub(r"\{\|([^|]+)\|\}", r"\1", text)
-if restore_path.exists():
-    for line in restore_path.read_text(encoding="utf-8").splitlines():
-        if not line:
-            continue
-        ascii_name, unicode_name = line.split("\t", 1)
-        text = re.sub(
-            r"(?<![A-Za-z0-9_'])" + re.escape(ascii_name) + r"(?![A-Za-z0-9_'])",
-            unicode_name,
-            text,
-        )
-
 text = text.replace("@conj ", "@Logic.conj ")
-
-# Rocq identifiers cannot start with a digit. Some TPTP premise names do,
-# for example "1_p0"; prefix only digit-starting identifiers that contain an
-# underscore, leaving ordinary numeric literals untouched.
-text = re.sub(
-    r"(?<![A-Za-z0-9_'])([0-9][A-Za-z0-9_']*_[A-Za-z0-9_']*)(?![A-Za-z0-9_'])",
-    r"lp_\1",
-    text,
-)
-
-# When Lambdapi/DK equality is used as a first-class term, stt_coq sometimes
-# prints Rocq's native equality in a form that is valid only if the type
-# argument were explicit. In Rocq it is implicit, so `eq nat` means partial
-# equality at the object `nat : Set`, not equality over naturals. Likewise
-# `a = x` appears for partially applied equality when `a : Type'`.
-ident = r"[A-Za-z_][A-Za-z0-9_']*"
-type_names = {"nat", "o", "bool"}
-type_decl_re = re.compile(r"^\s*Axiom\s+(" + ident + r")\s*:\s*Type'\s*\.", flags=re.MULTILINE)
-for source in [text]:
-    for m in type_decl_re.finditer(source):
-        type_names.add(m.group(1))
-for sibling in out_path.parent.glob("*.v"):
-    if sibling == out_path:
-        continue
-    try:
-        source = sibling.read_text(encoding="utf-8")
-    except OSError:
-        continue
-    for m in type_decl_re.finditer(source):
-        type_names.add(m.group(1))
-
-arrow_type = r"\([^()]+(?:\s*->\s*[^()]+)+\)"
-text = re.sub(r"\(eq (" + ident + r")\)", r"(@eq \1)", text)
-text = re.sub(r"\(eq (" + arrow_type + r")\)", r"(@eq \1)", text)
-
-simple_term = ident + r"(?:\s+" + ident + r")*"
-for ty in sorted(type_names, key=len, reverse=True):
-    qty = re.escape(ty)
-    text = re.sub(
-        r"\b" + qty + r" = \((" + ident + r"\s+\([^()]+\)\s+" + simple_term + r")\)",
-        lambda m, ty=ty: f"(fun lp_eq_arg__ : {ty} => {m.group(1)} = lp_eq_arg__)",
-        text,
-    )
-    text = re.sub(
-        r"\b" + qty + r" = \((" + ident + r"\s+\([^()]+\))\)",
-        lambda m, ty=ty: f"(fun lp_eq_arg__ : {ty} => {m.group(1)} = lp_eq_arg__)",
-        text,
-    )
-    text = re.sub(
-        r"\b" + qty + r" = \((" + simple_term + r")\)",
-        lambda m, ty=ty: f"(fun lp_eq_arg__ : {ty} => {m.group(1)} = lp_eq_arg__)",
-        text,
-    )
-    text = re.sub(
-        r"\(" + qty + r" = (" + ident + r")\)",
-        lambda m, ty=ty: f"(fun lp_eq_arg__ : {ty} => {m.group(1)} = lp_eq_arg__)",
-        text,
-    )
 
 # The Lambdapi Nat library has both the exponentiation symbol and a theorem
 # named expn. After mapping the symbol to the Rocq-side expn operation, the

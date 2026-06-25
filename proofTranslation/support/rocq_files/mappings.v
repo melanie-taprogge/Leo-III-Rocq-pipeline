@@ -173,7 +173,7 @@ Definition nat' := {| type := nat; el := O |}.
 Canonical nat'.
 
 (* Numeric constants exported through Dedukti can appear as Nat._1, Nat._2, ...
-   after module-prefix stripping. Rocq accepts these names, so expose aliases. *)
+   after DK module dequalification. Rocq accepts these names, so expose aliases. *)
 Definition _1 : nat := S O.
 Definition _2 : nat := S _1.
 Definition _3 : nat := S _2.

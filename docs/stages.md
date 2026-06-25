@@ -50,9 +50,10 @@ Lambdapi still checks source files during DK export.
 
 Performs DK cleanup needed for Rocq export:
 
-- removes `UserTactic` DK requires,
-- strips generated proof/stdlib/Leo module prefixes when the unprefixed target
-  module exists.
+- removes `UserTactic` DK requires.
+
+Current Lambdapi emits DK module names with the expected unprefixed target names,
+so the old module-prefix rewrite is no longer part of this stage.
 
 ## `30_postprocess_dk_for_dkcheck.sh`
 
@@ -95,8 +96,12 @@ other local DK files
 encodedProof.dk
 ```
 
-For each file it calls `dk_to_rocq.sh`, which invokes Lambdapi's `stt_coq`
-exporter and applies the current Rocq postprocessing fixes.
+For each file it calls `dk_to_rocq.sh`, which reconstructs Rocq imports,
+dequalifies mapped DK module references, generates temporary renamings for
+unmapped DK identifiers that Rocq cannot parse directly, invokes Lambdapi's
+`stt_coq` exporter, and applies the remaining targeted Rocq postprocessing
+fixes. The generated renaming file covers both local declarations and invalid
+components in qualified imported references, for example `Formulae.1_p0`.
 
 The stage writes `order.txt`.
 

@@ -22,10 +22,18 @@ in the Leo-III Lambdapi-to-Rocq proof pipeline.
 
 ## Dedukti Detour Artifacts
 
-- DK quoted identifiers such as `{|π|}` do not directly match the Rocq mapping
-  and encoding files.
-  `dk_to_rocq.sh` temporarily rewrites quoted identifiers to ASCII names for
-  Lambdapi export, then restores Rocq-parseable Unicode names after export.
+- DK quoted identifiers can now be used directly in Lambdapi mapping and
+  renaming files.
+  Quoted and unquoted DK identifiers are distinct, so the pipeline only treats
+  exact mapped source names as mapped.
+  The pipeline keeps `encoding.lp` and `mappings.lp` in DK syntax. For quoted or
+  otherwise illegal DK identifiers that are not already covered by mappings, it
+  generates a temporary `--renaming` file before calling `stt_coq`. This is
+  needed because current Lambdapi fails fast on identifiers whose Rocq spelling
+  is not explicit. The same pass also scans qualified imported references such
+  as `Formulae.1_p0`; otherwise a premise declaration can be renamed correctly
+  in `Formulae.v` while the proof file still contains an invalid qualified
+  reference.
 
 - DK `#REQUIRE` lines are reconstructed as Rocq `Require Import` lines.
   The pipeline extracts DK requires before `stt_coq`, removes them from the
@@ -34,11 +42,7 @@ in the Leo-III Lambdapi-to-Rocq proof pipeline.
   exist as generated Rocq files, such as `Prop` and `Set`, because those are
   handled by native Rocq and the shared `mappings` support file. It also lets
   the pipeline consistently add `Require Import mappings.` to every generated
-  Rocq file. In addition, DK require statements can contain quoted module names
-  such as `{|Stdlib-noOp_Nat|}` because the hyphenated package prefix is not a
-  plain DK identifier. These quoted module names are another reason to
-  reconstruct imports explicitly instead of relying on the raw `stt_coq`
-  translation of the require lines.
+  Rocq file.
 
 - DK rewrite rules are dropped before Rocq export.
   Rocq does not import these rewrite rules as definitional computation, and
@@ -81,17 +85,11 @@ in the Leo-III Lambdapi-to-Rocq proof pipeline.
   Tactic files are consumed during Lambdapi checking/export and are not Rocq
   translation targets in this route.
 
-- Generated proof/stdlib/Leo module prefixes are stripped when the unprefixed
-  target module exists.
-  Rocq module names cannot use package names with hyphens in the same way.
-  The quoted module names seen after DK export are often a consequence of these
-  hyphenated package roots. For example, `Stdlib-noOp_Nat` is not a plain DK
-  identifier because of the hyphen, so DK writes it as
-  `{|Stdlib-noOp_Nat|}`. After prefix stripping this can leave quoted short
-  module names such as `{|Nat|}` even though `Nat` itself would not need
-  quoting. This quoting is therefore mostly an artifact of using renamed
-  non-opaque package copies plus a postprocessing step that shortens module
-  names.
+- Generated DK module names are now emitted with the expected unprefixed module
+  names by current Lambdapi.
+  The old module-prefix stripping workaround has been removed from the staged
+  pipeline. The remaining DK cleanup in this stage is the removal of tactic-only
+  requires.
 
 ## Local/Global Name Collisions
 
@@ -121,16 +119,16 @@ target identifier.
 
 ## Equality Printing Fixes
 
-`dk_to_rocq.sh` rewrites several generated equality forms to explicit native
-Rocq equality, for example:
+The mapping file maps Lambdapi equality to explicit native Rocq equality:
 
-```coq
-(eq nat)        -> (@eq nat)
-(eq (nat -> o)) -> (@eq (nat -> o))
+```text
+builtin "@eq" ≔ {|=|};
 ```
 
-It also rewrites malformed partially-applied equality predicates to explicit
-lambda predicates in cases observed in Leo proof packages.
+This follows the current Lambdapi/Rocq exporter expectation for constants whose
+Rocq target has implicit arguments. The old regex-based equality postprocessing
+has been removed. The mapping file deliberately does not map `el` or `prf`;
+those are handled by the STT encoding.
 
 ## Generated Rocq Project Files
 
@@ -162,6 +160,6 @@ SKIP_DK_CHECK=1
 ```
 
 This does not skip Lambdapi source checking: Lambdapi rechecks files during DK
-export. DK checking is optional because current exported DK libraries can expose
-rewrite-rule/static-symbol issues that are not needed for the Rocq proof
-checking path.
+export. DK checking is optional because the Rocq pipeline does not require local
+DK object files and because the DK check can be expensive on large generated
+proofs.

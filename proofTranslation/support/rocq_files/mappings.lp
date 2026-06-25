@@ -27,7 +27,6 @@ builtin "iff" ≔ {|⇔|};
 // Set.lp
 builtin "Type'" ≔ Set;
 builtin "nat" ≔ {|ι|};
-builtin "el" ≔ el;
 
 // FOL.lp
 builtin "@all" ≔ {|∀|};
@@ -40,7 +39,7 @@ builtin "arr" ≔ {|⤳|};
 builtin "o" ≔ o;
 
 // Eq.lp
-builtin "eq" ≔ {|=|};
+builtin "@eq" ≔ {|=|};
 builtin "@eq_refl" ≔ eq_refl;
 builtin "@ind_eq" ≔ ind_eq;
 builtin "@neq" ≔ {|≠|};
@@ -91,7 +90,6 @@ builtin "factn" ≔ !;
 
 // List.lp core used by Disj.lp
 builtin "list" ≔ list_type;
-builtin "list__alt__" ≔ list_type;
 builtin "lp_u1d543" ≔ {|𝕃|};
 builtin "lp_u25a1" ≔ {|□|};
 builtin "lp_u2e2c" ≔ {|⸬|};
@@ -124,10 +122,8 @@ builtin "rcons_cons" ≔ rcons_cons;
 builtin "Arr" ≔ Arr;
 builtin "seqn_acc" ≔ seqn_acc;
 builtin "last" ≔ lp_last;
-builtin "last__alt__" ≔ lp_last;
 builtin "belast" ≔ belast;
 builtin "nth" ≔ lp_nth;
-builtin "nth__alt__" ≔ lp_nth;
 builtin "incr_nth" ≔ incr_nth;
 builtin "zip" ≔ zip;
 builtin "unzip1" ≔ unzip1;
@@ -158,7 +154,6 @@ builtin "index_size" ≔ index_size;
 builtin "index_head" ≔ index_head;
 builtin "has" ≔ has;
 builtin "all" ≔ list_all;
-builtin "all__alt__" ≔ list_all;
 builtin "find" ≔ find;
 builtin "find_size" ≔ find_size;
 builtin "count" ≔ count;
@@ -170,11 +165,9 @@ builtin "is_prefix" ≔ is_prefix;
 builtin "is_infix" ≔ is_infix;
 builtin "infix_index" ≔ infix_index;
 builtin "filter" ≔ lp_filter;
-builtin "filter__alt__" ≔ lp_filter;
 builtin "undup" ≔ undup;
 builtin "undup_first" ≔ undup_first;
 builtin "map" ≔ lp_map;
-builtin "map__alt__" ≔ lp_map;
 builtin "sumn" ≔ sumn;
 builtin "prodn" ≔ prodn;
 
@@ -248,9 +241,7 @@ builtin "addn0" ≔ addn0;
 builtin "addSn" ≔ addSn;
 builtin "addnS" ≔ addnS;
 builtin "add1n" ≔ add1n;
-builtin "Nat.add_1_r" ≔ addn1;
 builtin "addn1" ≔ addn1;
-builtin "Nat.add_comm" ≔ addnC;
 builtin "addnC" ≔ addnC;
 builtin "addSnnS" ≔ addSnnS;
 builtin "addnA" ≔ addnA;

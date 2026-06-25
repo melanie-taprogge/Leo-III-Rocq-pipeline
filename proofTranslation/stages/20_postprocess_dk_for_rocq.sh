@@ -15,9 +15,5 @@ echo "Post-processing DK files for Rocq export"
 
 python3 "$STAGE_ROOT/helpers/delete_dk_requires.py" \
   "$PROOF_DIR" \
-  '#REQUIRE {|Leo-III-lambdapi-lib-noOp_UserTactic|}.'
-
-python3 "$STAGE_ROOT/helpers/rewrite_dk_module_prefixes.py" \
-  "$PROOF_DIR" \
-  "$STDLIB" \
-  "$LEOLIB"
+  '#REQUIRE {|Leo-III-lambdapi-lib-noOp_UserTactic|}.' \
+  '#REQUIRE UserTactic.'

@@ -87,7 +87,7 @@ LP_EXPORT_USE_MAKE=0
 ```
 
 `SKIP_PROOF_INSTALL=1` avoids a duplicate package install/check pass before DK
-export. Lambdapi still checks the source files during `make dk`.
+export. Lambdapi still checks the source files during DK export.
 
 Set `SKIP_DK_CHECK=0` to run the optional Dedukti check stage.
 
