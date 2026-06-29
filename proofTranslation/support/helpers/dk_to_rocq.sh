@@ -302,6 +302,31 @@ text = path.read_text(encoding="utf-8")
 
 text = text.replace("@conj ", "@Logic.conj ")
 
+numerals = {
+    "_16": "16",
+    "_15": "15",
+    "_14": "14",
+    "_13": "13",
+    "_12": "12",
+    "_11": "11",
+    "_10": "10",
+    "_9": "9",
+    "_8": "8",
+    "_7": "7",
+    "_6": "6",
+    "_5": "5",
+    "_4": "4",
+    "_3": "3",
+    "_2": "2",
+    "_1": "1",
+}
+for name, replacement in numerals.items():
+    text = re.sub(
+        r"(?<![A-Za-z0-9_'])" + re.escape(name) + r"(?![A-Za-z0-9_'])",
+        replacement,
+        text,
+    )
+
 # The Lambdapi Nat library has both the exponentiation symbol and a theorem
 # named expn. After mapping the symbol to the Rocq-side expn operation, the
 # exporter renames the theorem to expn__alt__ and emits the original proof

@@ -13,16 +13,16 @@ Require Import Impred.
 Require Import Prod.
 Require Import PropExt.
 Require Import mappings.
-Axiom mfalse : nat -> o.
-Axiom mtrue : nat -> o.
-Axiom mor : (nat -> o) -> (nat -> o) -> nat -> o.
-Axiom mbox : (nat -> nat -> o) -> (nat -> o) -> nat -> o.
+Axiom mfalse : iota_type -> o.
+Axiom mtrue : iota_type -> o.
+Axiom mor : (iota_type -> o) -> (iota_type -> o) -> iota_type -> o.
+Axiom mbox : (iota_type -> iota_type -> o) -> (iota_type -> o) -> iota_type -> o.
 Axiom individuals : Type'.
-Axiom mvalid : (nat -> o) -> o.
-Axiom rel : nat -> nat -> o.
-Axiom icl_princ : (nat -> o) -> nat -> o.
-Axiom icl_true : nat -> o.
-Axiom icl_false : nat -> o.
-Axiom icl_says : (nat -> o) -> (nat -> o) -> nat -> o.
-Axiom iclval : (nat -> o) -> o.
-Axiom a : nat -> o.
+Axiom mvalid : (iota_type -> o) -> o.
+Axiom rel : iota_type -> iota_type -> o.
+Axiom icl_princ : (iota_type -> o) -> iota_type -> o.
+Axiom icl_true : iota_type -> o.
+Axiom icl_false : iota_type -> o.
+Axiom icl_says : (iota_type -> o) -> (iota_type -> o) -> iota_type -> o.
+Axiom iclval : (iota_type -> o) -> o.
+Axiom a : iota_type -> o.

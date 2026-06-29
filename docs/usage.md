@@ -51,6 +51,19 @@ proofTranslation/translateProofBatch2rocq.sh \
 `INPUT_ROOT` should contain one subdirectory per proof package. Each proof
 package must contain a `lambdapi.pkg`; directories without one are skipped.
 
+The batch wrapper prepares shared non-opaque dependency copies once per run:
+
+```text
+OUTPUT_ROOT/_deps/Stdlib-noOp
+OUTPUT_ROOT/_deps/Leo-III-lambdapi-lib-noOp
+```
+
+These are generated from `STDLIB_REPO` and `LEO_REPO` by copying the Lambdapi
+source files, removing `opaque` modifiers, and rewriting package roots/imports
+to `-noOp`. Each proof in the batch reuses those same dependency copies. Set
+`REUSE_DEPS=1` to reuse an existing valid `_deps` directory instead of
+regenerating it.
+
 ## Translate One Proof Package
 
 ```bash
@@ -77,8 +90,9 @@ SKIP_PROOF_INSTALL=1
 SKIP_DK_CHECK=1
 DROP_IMPORTS_REGEX=Prop|Set|Nat|List
 LP_ROCQ_LOCALE=<auto-detected UTF-8 locale>
-STDLIB_LP_DIR=STDLIB_REPO/lambdapi-noOp if present, otherwise STDLIB_REPO
-LEO_LP_DIR=LEO_REPO
+DEPS_DIR=ROCQ_OUT/_deps
+STDLIB_LP_DIR=DEPS_DIR/Stdlib-noOp, generated when unset
+LEO_LP_DIR=DEPS_DIR/Leo-III-lambdapi-lib-noOp, generated when unset
 LEO_ROCQ_DIR=LEO_REPO/rocq
 LP_NOOP_REWRITE_EXCLUDE=<empty>
 WORK_DIR=ROCQ_OUT/_work
@@ -100,15 +114,19 @@ The translator detects a usable UTF-8 locale instead of hard-coding a
 platform-specific one. Override it with `LP_ROCQ_LOCALE` if needed.
 
 The two repository arguments are the intended public interface. The `*_DIR`
-environment variables are only for nonstandard local layouts.
+environment variables are only for nonstandard local layouts or for batch
+wrappers that intentionally pass shared prepared dependencies.
 
 `STDLIB_REPO` should point at the standard-library translation repository root.
-The root may keep the upstream `Stdlib` package. For proof export, the
-translator automatically uses `STDLIB_REPO/lambdapi-noOp` when that directory
-contains `lambdapi.pkg`; this subdirectory must have `root_path = Stdlib-noOp`.
+The root may keep the upstream `Stdlib` package and may contain opaque
+declarations. For proof export, the translator creates a non-opaque
+`Stdlib-noOp` copy under `DEPS_DIR` unless `STDLIB_LP_DIR` is set explicitly.
 
-`LEO_REPO` must point at the translated Leo library repository root. It must
-contain `lambdapi.pkg` with `root_path = Leo-III-lambdapi-lib-noOp`.
+`LEO_REPO` must point at the translated Leo library repository root. Its root
+source may contain opaque declarations. For proof export, the translator creates
+a non-opaque `Leo-III-lambdapi-lib-noOp` copy under `DEPS_DIR` unless
+`LEO_LP_DIR` is set explicitly. Its `rocq/` subdirectory is still used for
+Rocq checking.
 
 The direct proof translator does not mutate `PROOF_DIR` by default. It copies
 the package to `WORK_DIR`, which defaults to `ROCQ_OUT/_work`, and performs LP

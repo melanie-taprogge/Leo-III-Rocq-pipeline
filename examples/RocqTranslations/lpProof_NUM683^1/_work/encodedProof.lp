@@ -27,7 +27,7 @@ flag "eta_equality" on;
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (S.more S.x S.y) ≔
+symbol encodedProof: π (S.more S.x S.y) ≔
 begin
 	refine (¬¬ₑ (S.more S.x S.y) _);
 	assume negatedConjecture;

@@ -19,10 +19,15 @@ Arguments:
                under LEO_REPO/rocq.
 
 Environment overrides for nonstandard repository layouts:
-  STDLIB_LP_DIR  Non-opaque Lambdapi stdlib source/DK path. Defaults to
-                 STDLIB_REPO/lambdapi-noOp when present, otherwise STDLIB_REPO.
-  LEO_LP_DIR     Lambdapi Leo library source/DK path. Defaults to LEO_REPO.
+  STDLIB_LP_DIR  Prepared non-opaque Lambdapi stdlib source/DK path.
+                 If unset, the translator creates ROCQ_OUT/_deps/Stdlib-noOp.
+  LEO_LP_DIR     Prepared non-opaque Lambdapi Leo library source/DK path.
+                 If unset, the translator creates
+                 ROCQ_OUT/_deps/Leo-III-lambdapi-lib-noOp.
   LEO_ROCQ_DIR   Compiled Rocq Leo library path. Defaults to LEO_REPO/rocq.
+  DEPS_DIR       Directory for generated non-opaque dependencies when
+                 STDLIB_LP_DIR or LEO_LP_DIR is unset. Defaults to
+                 ROCQ_OUT/_deps.
 EOF
 }
 
@@ -41,7 +46,7 @@ OUT="$2"
 STDLIB_REPO="$3"
 LEO_REPO="$4"
 STDLIB_LP_DIR="${STDLIB_LP_DIR:-}"
-LEO_LP_DIR="${LEO_LP_DIR:-$LEO_REPO}"
+LEO_LP_DIR="${LEO_LP_DIR:-}"
 LEO_ROCQ_DIR="${LEO_ROCQ_DIR:-$LEO_REPO/rocq}"
 
 SOURCE_PROOF_DIR="$(cd "$SOURCE_PROOF_DIR" && pwd)"
@@ -49,15 +54,6 @@ mkdir -p "$OUT"
 OUT="$(cd "$OUT" && pwd)"
 STDLIB_REPO="$(cd "$STDLIB_REPO" && pwd)"
 LEO_REPO="$(cd "$LEO_REPO" && pwd)"
-if [ -z "$STDLIB_LP_DIR" ]; then
-  if [ -f "$STDLIB_REPO/lambdapi-noOp/lambdapi.pkg" ]; then
-    STDLIB_LP_DIR="$STDLIB_REPO/lambdapi-noOp"
-  else
-    STDLIB_LP_DIR="$STDLIB_REPO"
-  fi
-fi
-STDLIB_LP_DIR="$(cd "$STDLIB_LP_DIR" && pwd)"
-LEO_LP_DIR="$(cd "$LEO_LP_DIR" && pwd)"
 LEO_ROCQ_DIR="$(cd "$LEO_ROCQ_DIR" && pwd)"
 
 WORK_DIR="${WORK_DIR:-$OUT/_work}"
@@ -80,6 +76,17 @@ source "$STAGE_ROOT/helpers/timing.sh"
 source "$STAGE_ROOT/helpers/locale.sh"
 export_utf8_locale
 
+if [ -z "$STDLIB_LP_DIR" ] || [ -z "$LEO_LP_DIR" ]; then
+  DEPS_DIR="${DEPS_DIR:-$OUT/_deps}"
+  "$STAGE_ROOT/05_prepare_lp_dependencies.sh" \
+    "$STDLIB_REPO" "$LEO_REPO" "$DEPS_DIR" "$SUPPORT_ROOT"
+  STDLIB_LP_DIR="${STDLIB_LP_DIR:-$DEPS_DIR/Stdlib-noOp}"
+  LEO_LP_DIR="${LEO_LP_DIR:-$DEPS_DIR/Leo-III-lambdapi-lib-noOp}"
+fi
+
+STDLIB_LP_DIR="$(cd "$STDLIB_LP_DIR" && pwd)"
+LEO_LP_DIR="$(cd "$LEO_LP_DIR" && pwd)"
+
 require_pkg_root() {
   local dir="$1"
   local expected="$2"
@@ -96,7 +103,7 @@ require_pkg_root() {
   if [ "$root" != "$expected" ]; then
     echo "Error: $label must have root_path = $expected for this pipeline." >&2
     echo "       Found root_path = ${root:-<missing>} in $pkg" >&2
-    echo "       This proof pipeline rewrites imports to the non-opaque -noOp packages." >&2
+    echo "       The proof pipeline exports against generated non-opaque -noOp packages." >&2
     exit 2
   fi
 }

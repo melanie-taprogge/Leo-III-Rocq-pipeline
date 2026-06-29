@@ -39,7 +39,7 @@ symbol sk4_def: π (sk4  = (ε(λ (A : τ ι), ¬ (S.in_ A sk1 ⇒ S.in_ A (S.se
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (S.setminusI ⇒ S.setminusER ⇒ S.binunionTIRcontra ⇒ (∀(λ (A : τ ι), (∀(λ (B : τ ι), S.in_ B (S.powerset A) ⇒ (∀(λ (C : τ ι), S.in_ C (S.powerset A) ⇒ (∀(λ (D : τ ι), S.in_ D A ⇒ S.in_ D (S.setminus A (S.binunion B C)) ⇒ S.in_ D (S.setminus A C)))))))))) ≔
+symbol encodedProof: π (S.setminusI ⇒ S.setminusER ⇒ S.binunionTIRcontra ⇒ (∀(λ (A : τ ι), (∀(λ (B : τ ι), S.in_ B (S.powerset A) ⇒ (∀(λ (C : τ ι), S.in_ C (S.powerset A) ⇒ (∀(λ (D : τ ι), S.in_ D A ⇒ S.in_ D (S.setminus A (S.binunion B C)) ⇒ S.in_ D (S.setminus A C)))))))))) ≔
 begin
 	refine (¬¬ₑ (S.setminusI ⇒ S.setminusER ⇒ S.binunionTIRcontra ⇒ (∀(λ (A : τ ι), (∀(λ (B : τ ι), S.in_ B (S.powerset A) ⇒ (∀(λ (C : τ ι), S.in_ C (S.powerset A) ⇒ (∀(λ (D : τ ι), S.in_ D A ⇒ S.in_ D (S.setminus A (S.binunion B C)) ⇒ S.in_ D (S.setminus A C)))))))))) _);
 	assume negatedConjecture;

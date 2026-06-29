@@ -84,7 +84,7 @@ Axiom real : Type'.
 Axiom rat : Type'.
 Axiom num : Type'.
 Axiom lp_local_nat : Type'.
-Axiom int : Type'.
+Axiom lp_local_int : Type'.
 Axiom collect_nat : (lp_local_nat -> o) -> set_nat.
 Axiom vEBT_V8194947554948674370ptions : vEBT_VEBT -> lp_local_nat -> o.
 Axiom vEBT_invar_vebt : vEBT_VEBT -> lp_local_nat -> o.

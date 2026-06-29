@@ -33,7 +33,7 @@ symbol sk2_def (A : τ (ι ⤳ o)): π (sk2 A = (ε(λ (B : τ ι), sk1 B = A)))
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (¬ (∃(λ (A : τ (ι ⤳ (ι ⤳ o))), (∀(λ (B : τ (ι ⤳ o)), (∃(λ (C : τ ι), A C = B))))))) ≔
+symbol encodedProof: π (¬ (∃(λ (A : τ (ι ⤳ (ι ⤳ o))), (∀(λ (B : τ (ι ⤳ o)), (∃(λ (C : τ ι), A C = B))))))) ≔
 begin
 	refine (¬¬ₑ (¬ (∃(λ (A : τ (ι ⤳ (ι ⤳ o))), (∀(λ (B : τ (ι ⤳ o)), (∃(λ (C : τ ι), A C = B))))))) _);
 	assume negatedConjecture;

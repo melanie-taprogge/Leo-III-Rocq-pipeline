@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TRANSLATOR="$ROOT/proofTranslation/translateProof2rocq.sh"
+STAGE_ROOT="$ROOT/proofTranslation/stages"
+SUPPORT_ROOT="$ROOT/proofTranslation/support"
 
 usage() {
   cat <<'EOF'
@@ -16,6 +18,8 @@ Defaults:
     OUTPUT_ROOT = examples/RocqTranslations
 
 Set VERBOSE=1 to print each proof translation log.
+Set REUSE_DEPS=1 to reuse OUTPUT_ROOT/_deps when it already contains valid
+non-opaque dependency copies.
 EOF
 }
 
@@ -60,6 +64,14 @@ echo "  output:     $OUTPUT_ROOT"
 echo "  stdlib repo: $STDLIB_REPO"
 echo "  leo repo:    $LEO_REPO"
 echo
+
+DEPS_DIR="${DEPS_DIR:-$OUTPUT_ROOT/_deps}"
+if [ -z "${STDLIB_LP_DIR:-}" ] || [ -z "${LEO_LP_DIR:-}" ]; then
+  "$STAGE_ROOT/05_prepare_lp_dependencies.sh" \
+    "$STDLIB_REPO" "$LEO_REPO" "$DEPS_DIR" "$SUPPORT_ROOT"
+  export STDLIB_LP_DIR="${STDLIB_LP_DIR:-$DEPS_DIR/Stdlib-noOp}"
+  export LEO_LP_DIR="${LEO_LP_DIR:-$DEPS_DIR/Leo-III-lambdapi-lib-noOp}"
+fi
 
 ok=0
 fail=0

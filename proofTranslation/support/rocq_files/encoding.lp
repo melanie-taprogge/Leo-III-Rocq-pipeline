@@ -1,9 +1,9 @@
-// dk/lp symbols used for encoding simple type theory
+// DK/Lambdapi symbols used for encoding simple type theory.
 
 builtin "El" ≔ {|τ|};
 builtin "Prf" ≔ {|π|};
 
-// symbols with special notations in Coq
+// Symbols with special Rocq notation.
 builtin "Set" ≔ Set;
 builtin "prop" ≔ Prop;
 builtin "arr" ≔ {|⤳|};

@@ -13,4 +13,4 @@ Require Import Impred.
 Require Import Prod.
 Require Import PropExt.
 Require Import mappings.
-Axiom cD_FOR_X5309 : ((nat -> o) -> nat) -> nat -> o.
+Axiom cD_FOR_X5309 : ((iota_type -> o) -> iota_type) -> iota_type -> o.

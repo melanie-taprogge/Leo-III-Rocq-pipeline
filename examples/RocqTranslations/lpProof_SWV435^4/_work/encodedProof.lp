@@ -35,7 +35,7 @@ symbol sk2_def: π (sk2  = (ε(λ (A : τ ι), ¬ (S.rel sk1 A ⇒ S.a A))));
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (S.iclval (S.icl_says (S.icl_princ S.a) S.icl_false)) ≔
+symbol encodedProof: π (S.iclval (S.icl_says (S.icl_princ S.a) S.icl_false)) ≔
 begin
 	refine (¬¬ₑ (S.iclval (S.icl_says (S.icl_princ S.a) S.icl_false)) _);
 	assume negatedConjecture;

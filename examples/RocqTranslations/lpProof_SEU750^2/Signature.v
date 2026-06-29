@@ -13,10 +13,10 @@ Require Import Impred.
 Require Import Prod.
 Require Import PropExt.
 Require Import mappings.
-Axiom in_ : nat -> nat -> o.
-Axiom powerset : nat -> nat.
-Axiom binunion : nat -> nat -> nat.
-Axiom setminus : nat -> nat -> nat.
+Axiom in_ : iota_type -> iota_type -> o.
+Axiom powerset : iota_type -> iota_type.
+Axiom binunion : iota_type -> iota_type -> iota_type.
+Axiom setminus : iota_type -> iota_type -> iota_type.
 Axiom setminusI : o.
 Axiom setminusER : o.
 Axiom binunionTIRcontra : o.

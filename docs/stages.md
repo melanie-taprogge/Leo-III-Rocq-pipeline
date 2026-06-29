@@ -17,13 +17,26 @@ from local `.lp` files, and rewrites package names/imports to the `-noOp`
 variants with `rename2_noOp.py`.
 
 `Stdlib` imports are rewritten to `Stdlib-noOp`, and Leo library imports are
-rewritten to `Leo-III-lambdapi-lib-noOp`. The standard-library repository may
-keep its upstream `Stdlib` root at top level, but it must provide the non-opaque
-`Stdlib-noOp` source under `lambdapi-noOp/` or via `STDLIB_LP_DIR`. This avoids
-loading two distinct copies of the standard library in one proof package.
+rewritten to `Leo-III-lambdapi-lib-noOp`. This avoids loading two distinct
+copies of the standard library in one proof package.
 
 The `opaque` removal is implemented in Python rather than via `perl -i`, so it
 does not depend on platform-specific in-place editing behavior or locale quirks.
+
+## `05_prepare_lp_dependencies.sh`
+
+Creates non-opaque Lambdapi dependency copies from the two companion
+repositories:
+
+```text
+DEPS_DIR/Stdlib-noOp
+DEPS_DIR/Leo-III-lambdapi-lib-noOp
+```
+
+The stage copies `*.lp` files and `lambdapi.pkg`, removes `opaque` modifiers,
+and rewrites package roots/imports to `-noOp`. In batch mode this stage runs
+once before the proof loop, so all proofs share the same prepared dependencies.
+Set `REUSE_DEPS=1` to reuse an existing valid dependency cache.
 
 ## `10_export_lp_to_dk.sh`
 

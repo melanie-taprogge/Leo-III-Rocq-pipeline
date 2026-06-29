@@ -69,24 +69,22 @@ This pipeline expects two companion repositories:
 
 The standard-library repository is used on the Lambdapi/DK side. Its root may
 keep the upstream standard-library package root `Stdlib`. For proof export, the
-pipeline uses the non-opaque source copy under:
+pipeline creates a temporary non-opaque dependency copy with package root
+`Stdlib-noOp`.
 
-```text
-STDLIB_REPO/lambdapi-noOp
-```
-
-That subdirectory must contain `lambdapi.pkg` with `root_path = Stdlib-noOp`.
-If your checkout uses a different location for the non-opaque stdlib source,
-set `STDLIB_LP_DIR`.
+In batch mode this copy is shared by all proofs in the batch under
+`OUTPUT_ROOT/_deps/Stdlib-noOp`. In single-proof mode it is created under
+`ROCQ_OUT/_deps/Stdlib-noOp` unless `STDLIB_LP_DIR` is set explicitly.
 
 The Leo-III library repository is used on both sides:
 
-- its root is used as the Lambdapi/DK dependency for Leo library imports;
+- a temporary non-opaque copy of its root source is used as the Lambdapi/DK
+  dependency for Leo library imports;
 - its `rocq/` subdirectory is used as the compiled Rocq library dependency when
   checking generated proof files.
 
-The expected Leo Lambdapi package root is `Leo-III-lambdapi-lib-noOp`, matching
-the current translated Leo repository.
+The generated temporary Leo dependency has package root
+`Leo-III-lambdapi-lib-noOp`.
 
 If your local checkout uses a different layout, keep the same command-line
 arguments and override the derived paths with:
@@ -97,6 +95,9 @@ LEO_LP_DIR=/path/to/leo-lp \
 LEO_ROCQ_DIR=/path/to/leo-rocq \
 proofTranslation/translateProof2rocq.sh PROOF_DIR ROCQ_OUT STDLIB_REPO LEO_REPO
 ```
+
+For repeated runs over the same batch output directory, set `REUSE_DEPS=1` to
+reuse an existing valid `OUTPUT_ROOT/_deps` cache.
 
 ## Required External Tools
 
@@ -119,6 +120,7 @@ proofTranslation/
   translateProof2rocq.sh
   stages/
     00_prepare_lp_package.sh
+    05_prepare_lp_dependencies.sh
     10_export_lp_to_dk.sh
     20_postprocess_dk_for_rocq.sh
     30_postprocess_dk_for_dkcheck.sh

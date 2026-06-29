@@ -27,7 +27,7 @@ flag "eta_equality" on;
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (S.vEBT_vebt_member S.t S.x = S.member_nat S.x (S.vEBT_set_vebt S.t)) ≔
+symbol encodedProof: π (S.vEBT_vebt_member S.t S.x = S.member_nat S.x (S.vEBT_set_vebt S.t)) ≔
 begin
 	refine (¬¬ₑ (S.vEBT_vebt_member S.t S.x = S.member_nat S.x (S.vEBT_set_vebt S.t)) _);
 	assume negatedConjecture;

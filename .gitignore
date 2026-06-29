@@ -15,3 +15,5 @@ runs/
 work/
 rocq_out/
 currentTranslated/
+_deps/
+examples/RocqTranslations/_deps/

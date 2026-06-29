@@ -26,13 +26,16 @@ the underlying translator output.
 Derived paths:
 
 ```text
-STDLIB_LP_DIR = STDLIB_REPO/lambdapi-noOp, when present
-LEO_LP_DIR    = LEO_REPO
+DEPS_DIR      = ROCQ_OUT/_deps, or OUTPUT_ROOT/_deps in batch mode
+STDLIB_LP_DIR = DEPS_DIR/Stdlib-noOp, generated when unset
+LEO_LP_DIR    = DEPS_DIR/Leo-III-lambdapi-lib-noOp, generated when unset
 LEO_ROCQ_DIR  = LEO_REPO/rocq
 ```
 
-Otherwise `STDLIB_LP_DIR` falls back to `STDLIB_REPO`. Override these with
-environment variables if a local checkout uses a different layout.
+The generated dependency copies remove `opaque` modifiers and rewrite
+package/import roots to `-noOp`. Batch mode prepares these copies once and
+reuses them for every proof in the batch. Set `REUSE_DEPS=1` to reuse an
+existing valid dependency cache.
 
 The translator copies `PROOF_DIR` to `ROCQ_OUT/_work` before preprocessing by
 default. This keeps the original proof package unchanged. Set
@@ -51,6 +54,7 @@ original root path.
 ```text
 stages/
   00_prepare_lp_package.sh
+  05_prepare_lp_dependencies.sh
   10_export_lp_to_dk.sh
   20_postprocess_dk_for_rocq.sh
   30_postprocess_dk_for_dkcheck.sh
@@ -77,6 +81,11 @@ Current phase meaning:
   Verifies that the proof package provides a Makefile, removes `opaque`
   modifiers from local proof LP files, and rewrites package/import names to the
   `-noOp` copies. It no longer replaces package Makefiles.
+
+- `05_prepare_lp_dependencies.sh`
+  Creates non-opaque `Stdlib-noOp` and `Leo-III-lambdapi-lib-noOp` dependency
+  copies from the companion repositories. The batch wrapper calls this once per
+  batch so all proofs share the same prepared library copies.
 
 - `10_export_lp_to_dk.sh`
   Runs `make clean`, optionally runs `make install`, then exports local LP files

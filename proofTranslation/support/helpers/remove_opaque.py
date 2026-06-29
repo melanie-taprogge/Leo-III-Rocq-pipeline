@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 
-OPAQUE_SYMBOL = re.compile(r"\bopaque([ \t\r\n]+symbol\b)")
+OPAQUE_BEFORE_SYMBOL = re.compile(r"\bopaque[ \t\r\n]+(?=(?:opaque[ \t\r\n]+)*symbol\b)")
 
 
 def main() -> int:
@@ -18,7 +18,12 @@ def main() -> int:
 
     path = Path(sys.argv[1])
     text = path.read_text(encoding="utf-8")
-    updated = OPAQUE_SYMBOL.sub(r"\1", text)
+    updated = text
+    while True:
+        next_text = OPAQUE_BEFORE_SYMBOL.sub("", updated)
+        if next_text == updated:
+            break
+        updated = next_text
     if updated != text:
         path.write_text(updated, encoding="utf-8")
     return 0

@@ -13,32 +13,32 @@ Require Import Impred.
 Require Import Prod.
 Require Import PropExt.
 Require Import mappings.
-Axiom in_ : nat -> nat -> o.
-Axiom exu : (nat -> o) -> o.
+Axiom in_ : iota_type -> iota_type -> o.
+Axiom exu : (iota_type -> o) -> o.
 Axiom setextAx : o.
-Axiom emptyset : nat.
+Axiom emptyset : iota_type.
 Axiom emptysetAx : o.
-Axiom setadjoin : nat -> nat -> nat.
+Axiom setadjoin : iota_type -> iota_type -> iota_type.
 Axiom setadjoinAx : o.
-Axiom powerset : nat -> nat.
+Axiom powerset : iota_type -> iota_type.
 Axiom powersetAx : o.
-Axiom setunion : nat -> nat.
+Axiom setunion : iota_type -> iota_type.
 Axiom setunionAx : o.
-Axiom omega : nat.
+Axiom omega : iota_type.
 Axiom omega0Ax : o.
 Axiom omegaSAx : o.
 Axiom omegaIndAx : o.
 Axiom replAx : o.
 Axiom foundationAx : o.
 Axiom wellorderingAx : o.
-Axiom descr : (nat -> o) -> nat.
+Axiom descr : (iota_type -> o) -> iota_type.
 Axiom descrp : o.
-Axiom dsetconstr : nat -> (nat -> o) -> nat.
+Axiom dsetconstr : iota_type -> (iota_type -> o) -> iota_type.
 Axiom dsetconstrI : o.
 Axiom dsetconstrEL : o.
 Axiom dsetconstrER : o.
 Axiom exuE1 : o.
-Axiom prop2set : o -> nat.
+Axiom prop2set : o -> iota_type.
 Axiom prop2setE : o.
 Axiom emptysetE : o.
 Axiom emptysetimpfalse : o.
@@ -48,7 +48,7 @@ Axiom setext : o.
 Axiom emptyI : o.
 Axiom noeltsimpempty : o.
 Axiom setbeta : o.
-Axiom nonempty : nat -> o.
+Axiom nonempty : iota_type -> o.
 Axiom nonemptyE1 : o.
 Axiom nonemptyI : o.
 Axiom nonemptyI1 : o.

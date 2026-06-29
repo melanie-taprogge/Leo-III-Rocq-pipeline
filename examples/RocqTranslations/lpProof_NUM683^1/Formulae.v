@@ -15,6 +15,6 @@ Require Import Prod.
 Require Import PropExt.
 Require Import Signature.
 Require Import mappings.
-Axiom satz6_p0 : @all lp_local_nat (fun v110131 : lp_local_nat => @all lp_local_nat (fun v110132 : lp_local_nat => (pl v110131 v110132) = (pl v110132 v110131))).
+Axiom satz6_p0 : @all lp_local_nat (fun v112321 : lp_local_nat => @all lp_local_nat (fun v112322 : lp_local_nat => (pl v112321 v112322) = (pl v112322 v112321))).
 Axiom m_p1 : more (pl z x) (pl z y).
-Axiom satz20a_p2 : @all lp_local_nat (fun v110133 : lp_local_nat => @all lp_local_nat (fun v110134 : lp_local_nat => @all lp_local_nat (fun v110135 : lp_local_nat => (more (pl v110133 v110135) (pl v110134 v110135)) -> more v110133 v110134))).
+Axiom satz20a_p2 : @all lp_local_nat (fun v112323 : lp_local_nat => @all lp_local_nat (fun v112324 : lp_local_nat => @all lp_local_nat (fun v112325 : lp_local_nat => (more (pl v112323 v112325) (pl v112324 v112325)) -> more v112323 v112324))).

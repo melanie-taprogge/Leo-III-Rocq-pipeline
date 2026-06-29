@@ -10,14 +10,15 @@ in the Leo-III Lambdapi-to-Rocq proof pipeline.
   terms rather than hidden behind opacity.
 
 - Package names/imports are rewritten to `-noOp` variants.
-  The current translation uses non-opaque stdlib and Leo library copies so that
-  definitions needed by proofs can unfold before DK/Rocq export.
+  The current translation uses generated non-opaque stdlib and Leo library
+  copies so that definitions needed by proofs can unfold before DK/Rocq export.
   It is important that the proof package, the stdlib dependency, and the Leo
   dependency agree on these roots. In particular, mixing `Stdlib` and
   `Stdlib-noOp` gives two different copies of symbols such as list `𝕃`, which
   can surface as Lambdapi unification failures during DK export.
-  The stdlib repository keeps upstream files at top level and stores the
-  non-opaque `Stdlib-noOp` source copy in `lambdapi-noOp/`.
+  The companion library repositories keep their ordinary source layout; the
+  proof pipeline prepares the `Stdlib-noOp` and `Leo-III-lambdapi-lib-noOp`
+  copies under `_deps`.
 
 
 ## Dedukti Detour Artifacts
@@ -77,9 +78,14 @@ in the Leo-III Lambdapi-to-Rocq proof pipeline.
 ## Proof-Package DK Cleanup
 
 - DK export uses explicit Lambdapi `--map-dir` bindings for the non-opaque
-  stdlib and Leo dependency repositories.
+  stdlib and Leo dependency copies.
   This prevents the export step from accidentally picking up a globally
   installed package with the same root.
+
+- Dequalified Dedukti numeral aliases such as `_1` and `_2` are rewritten to
+  native Rocq numerals during proof Rocq postprocessing. These aliases can
+  appear after module dequalification of standard-library numeral constants,
+  but they are not declarations in the checked Rocq library snapshot.
 
 - `UserTactic` DK requires are removed.
   Tactic files are consumed during Lambdapi checking/export and are not Rocq

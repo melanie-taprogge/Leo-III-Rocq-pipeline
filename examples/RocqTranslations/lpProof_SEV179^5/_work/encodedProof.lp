@@ -35,7 +35,7 @@ symbol sk2_def: π (sk2  = (ε(λ (A : τ (ι ⤳ o)), ¬ A (sk1 A) ∧ sk1 (λ 
 
 // PROOF ENCODING ////////////////////////////////////////
 
- symbol encodedProof: π (∀(λ (A : τ ((ι ⤳ o) ⤳ ι)), S.cD_FOR_X5309 A (A (S.cD_FOR_X5309 A)))) ≔
+symbol encodedProof: π (∀(λ (A : τ ((ι ⤳ o) ⤳ ι)), S.cD_FOR_X5309 A (A (S.cD_FOR_X5309 A)))) ≔
 begin
 	refine (¬¬ₑ (∀(λ (A : τ ((ι ⤳ o) ⤳ ι)), S.cD_FOR_X5309 A (A (S.cD_FOR_X5309 A)))) _);
 	assume negatedConjecture;
